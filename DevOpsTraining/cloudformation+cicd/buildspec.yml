@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+  install:
+   runtime-versions:
+      java: corretto11
+  pre_build:
+    commands:
+      - echo Nothing to do in the pre_build phase...
+  build:
+    commands:
+      - echo Build started on `date`
+      - pwd
+      - dir
+      - aws cloudformation package --template-file changeset_s3.yaml --s3-bucket artifactstore-bucket-ahmad-3 --output-template-file packaged_template.yaml
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - packaged_template.yaml

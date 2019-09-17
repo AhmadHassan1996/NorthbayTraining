@@ -1,0 +1,18 @@
+[
+  {
+    "ParameterKey": "CodeCommitRepoName",
+    "ParameterValue": "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/codecommit-repo-ahmad"
+  },
+  {
+    "ParameterKey": "CodeBuildServiceRole",
+    "ParameterValue": "arn:aws:iam::373281343701:role/service-role/codebuild-codebuild-ahmad-service-role"
+  },
+  {
+    "ParameterKey": "CodePipelineServiceRole",
+    "ParameterValue": "arn:aws:iam::373281343701:role/service-role/AWSCodePipelineServiceRole-us-east-1-codepipeline-ahmad"
+  },
+  {
+    "ParameterKey": "CloudformationServiceRole",
+    "ParameterValue": "arn:aws:iam::373281343701:role/cloudformation-role-ahmad"
+  }
+]

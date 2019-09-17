@@ -1,0 +1,103 @@
+---
+Parameters:
+  CodeCommitRepoName:
+    Type: String
+  CodeBuildServiceRole:
+    Type: String
+  CodePipelineServiceRole:
+    Type: String
+  CloudformationServiceRole:
+    Type: String
+Resources:
+    S3BucketArtifactStore:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: artifactstore-bucket-ahmad-3
+        AccessControl: Private
+    codebuild:
+      Type: AWS::CodeBuild::Project
+      Properties:
+        Name: codebuild-ahmad-3
+        ServiceRole: 
+          Ref: CodeBuildServiceRole
+        Artifacts:
+          Type: no_artifacts
+        Environment:
+          Type: LINUX_CONTAINER
+          ComputeType: BUILD_GENERAL1_SMALL
+          Image: aws/codebuild/amazonlinux2-x86_64-standard:1.0
+        Source:
+          Location: 
+            Ref: CodeCommitRepoName
+          Type: CODECOMMIT
+        SourceVersion: refs/heads/master
+        TimeoutInMinutes: 10
+    codepipeline:
+      Type: AWS::CodePipeline::Pipeline 
+      Properties: 
+        Name: codepipeline-ahmad-3
+        RoleArn: 
+          Ref: CodePipelineServiceRole
+        Stages: 
+          - 
+            Name: Source
+            Actions: 
+              - 
+                Name: Source
+                ActionTypeId: 
+                  Category: Source 
+                  Owner: AWS 
+                  Version: 1 
+                  Provider: CodeCommit
+                OutputArtifacts: 
+                  - 
+                    Name: SourceArtifact
+                Configuration: 
+                  RepositoryName: codecommit-repo-ahmad
+                  BranchName: master
+                RunOrder: 1 
+          - 
+            Name: Build
+            Actions: 
+              - 
+                Name: Build
+                InputArtifacts: 
+                  -
+                    Name: SourceArtifact
+                ActionTypeId: 
+                  Category: Build
+                  Owner: AWS 
+                  Version: 1 
+                  Provider: CodeBuild
+                OutputArtifacts: 
+                  - 
+                    Name: BuildArtifact
+                Configuration: 
+                  ProjectName: 
+                    Ref: codebuild
+                RunOrder: 1
+          -
+            Name: Deploy
+            Actions: 
+              - 
+                Name: Deploy 
+                InputArtifacts: 
+                  -
+                    Name: BuildArtifact
+                ActionTypeId: 
+                  Category: Deploy 
+                  Owner: AWS 
+                  Version: 1 
+                  Provider: CloudFormation
+                Configuration: 
+                  ActionMode: CREATE_UPDATE
+                  StackName: s3bucket-stack-ahmad
+                  RoleArn: 
+                    Ref: CloudformationServiceRole
+                  TemplatePath: BuildArtifact::packaged_template.yaml
+                  TemplateConfiguration: BuildArtifact::configuration_file.json
+                RunOrder: 1 
+        ArtifactStore: 
+          Type: S3 
+          Location:
+            Ref: S3BucketArtifactStore
