@@ -1,0 +1,90 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ''
+Metadata: {}
+Parameters: {}
+Mappings: {}
+Conditions: {}
+Resources:
+  Task3VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/16
+      Tags:
+      - Key: Name
+        Value: Task3VPC
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      VpcId:
+        Ref: Task3VPC
+      CidrBlock: 192.168.1.0/24
+      Tags:
+      - Key: Name
+        Value: PrivateSubnet1
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      VpcId:
+        Ref: Task3VPC
+      CidrBlock: 192.168.2.0/24
+      Tags:
+      - Key: Name
+        Value: PrivateSubnet2
+  rdsDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet Group for RDS
+      SubnetIds:
+      - Ref: PrivateSubnet1
+      - Ref: PrivateSubnet2
+      Tags:
+      - Key: Name
+        Value: rdsDBSubnetGroup
+  rdsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow RDS Connections
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      VpcId:
+        Ref: Task3VPC
+      Tags:
+      - Key: Name
+        Value: rdsSecurityGroup
+  rdsDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: '20'
+      DBInstanceClass: db.t2.micro
+      AllowMajorVersionUpgrade: 'false'
+      AutoMinorVersionUpgrade: 'false'
+      BackupRetentionPeriod: '7'
+      DBInstanceIdentifier: taqtest1
+      DBName: taqtest1
+      VPCSecurityGroups:
+      - Ref: rdsSecurityGroup
+      DBSubnetGroupName:
+        Ref: rdsDBSubnetGroup
+      Engine: MySQL
+      EngineVersion: 5.7.22
+      MasterUsername: taqtest1
+      MasterUserPassword: taqtest1
+      MultiAZ: 'false'
+      Port: '3306'
+      PubliclyAccessible: 'false'
+      StorageType: gp2
+      Tags:
+      - Key: Name
+        Value: taqtest1
+Outputs: {}
