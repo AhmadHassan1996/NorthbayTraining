@@ -1,0 +1,70 @@
+---
+Resources:
+    MyRepo:
+      Type: AWS::CodeCommit::Repository
+      Properties:
+        RepositoryName: MyRepo
+    SeniorDevGroup:
+      Type: AWS::IAM::Group
+      Properties:
+        GroupName: SeniorDevGroup
+    DevGroup:
+      Type: AWS::IAM::Group
+      Properties:
+        GroupName: DevGroup
+    SeniorDevUser:
+      Type: AWS::IAM::User
+      Properties:
+        Groups:
+          - Ref: "SeniorDevGroup"
+        LoginProfile: 
+          Password: Password-12345
+        UserName: SeniorDevUser
+    DevUser:
+      Type: AWS::IAM::User
+      Properties: 
+        Groups:
+          - Ref: "DevGroup"
+        LoginProfile:
+          Password: Password-12345
+        UserName: DevUser
+    SeniorDevPolicy:
+      Type: AWS::IAM::Policy
+      Properties:
+        PolicyName: "SeniorDevPolicy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            Effect: Allow
+            Action: codecommit:*
+            Resource:
+              - Fn::GetAtt: ["MyRepo", "Arn"]
+        Groups:
+          - Ref: SeniorDevGroup
+          - Ref: DevGroup
+    DevPolicy:
+      Type: AWS::IAM::Policy
+      Properties:
+        PolicyName: "DevPolicy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            Effect: Deny
+            Action:
+            - codecommit:GitPush
+            - codecommit:DeleteBranch
+            - codecommit:PutFile
+            - codecommit:Merge*
+            Resource:
+              - Fn::GetAtt: ["MyRepo", "Arn"]
+            Condition:
+              StringEqualsIfExists:
+                codecommit:References:
+                - refs/heads/master
+                - refs/heads/develop
+                - refs/heads/staging
+                - refs/heads/preprod
+              'Null':
+                codecommit:References: false
+        Groups:
+          - Ref: "DevGroup"
